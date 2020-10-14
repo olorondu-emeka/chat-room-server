@@ -29,12 +29,8 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE'
     });
-    Chatroom.belongsToMany(models.Message, {
+    Chatroom.hasMany(models.ChatroomMessage, {
       foreignKey: 'chatroomId',
-      otherKey: 'messageId',
-      through: 'ChatroomMessages',
-      as: 'messages',
-      onUpdate: 'CASCADE',
       onDelete: 'CASCADE'
     });
   };

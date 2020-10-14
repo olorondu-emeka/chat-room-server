@@ -14,19 +14,16 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         allowNull: false
       },
-      password: DataTypes.STRING,
-      isVerified: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-      },
-      roleId: {
-        type: DataTypes.INTEGER
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false
       }
+
     },
     {}
   );
   User.associate = (models) => {
-    User.hasMany(models.Message, {
+    User.hasMany(models.ChatroomMessage, {
       foreignKey: 'userId'
     });
     User.belongsToMany(models.Chatroom, {

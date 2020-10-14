@@ -9,7 +9,9 @@
     "db:migrate-undo": "sequelize db:migrate:undo:all",
     "db:migrate": "sequelize db:migrate",
     "db:rollback": "npm run db:migrate-undo && npm run db:migrate && npm run db:seed",
-    "syncenv": "node envcheck.js"
+    "syncenv": "node envcheck.js",
+    "lint": "eslint '**/*.js'",
+    "lint:fix": "prettier-eslint '**/*.js' --write"
   },
   "repository": {
     "type": "git",

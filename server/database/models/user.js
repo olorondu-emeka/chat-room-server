@@ -1,6 +1,4 @@
-'use strict';
- 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
@@ -18,11 +16,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
       }
-
     },
     {}
   );
+
   User.associate = (models) => {
+    User.hasOne(models.Session, {
+      foreignKey: 'userId'
+    });
     User.hasMany(models.ChatroomMessage, {
       foreignKey: 'userId'
     });
@@ -34,6 +35,22 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE'
     });
+  };
+  User.findByEmail = async (email) => {
+    const user = await User.findOne({
+      where: { email },
+      attributes: { exclude: ['password'] }
+    });
+    if (user) return user.dataValues;
+    return null;
+  };
+  User.findById = async (id) => {
+    const user = await User.findOne({
+      where: { id },
+      attributes: { exclude: ['password'] }
+    });
+    if (user) return user.dataValues;
+    return null;
   };
   return User;
 };

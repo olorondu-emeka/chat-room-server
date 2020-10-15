@@ -4,7 +4,8 @@
   "description": "A simple chat room",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon --exec babel-node server",
+    "test": "nyc mocha --timeout 20000 -r esm --exit",
     "db:seed": "sequelize db:seed:all",
     "db:migrate-undo": "sequelize db:migrate:undo:all",
     "db:migrate": "sequelize db:migrate",
@@ -31,15 +32,45 @@
     "husky": "^4.3.0",
     "jsonwebtoken": "^8.5.1",
     "pg": "^8.4.1",
-    "sequelize": "^6.3.5",
+    "sequelize": "^5.21.5",
     "sequelize-cli": "^6.2.0",
     "socket.io": "^2.3.0"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run syncenv && git add . && lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.+(js|jsx)": [
+      "eslint --fix --ext .js ./server",
+      "git add"
+    ],
+    "*.+(json|css|md)": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "devDependencies": {
-    "eslint": "^7.11.0",
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/node": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/register": "^7.5.5",
+    "@babel/runtime": "^7.9.2",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
+    "esm": "^3.2.25",
+    "faker": "^5.1.0",
     "lint-staged": "^10.4.0",
+    "mocha": "^8.1.1",
+    "nodemon": "^2.0.4",
+    "nyc": "^15.1.0",
     "prettier-eslint-cli": "^5.0.0"
   }
 }

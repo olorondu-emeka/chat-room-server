@@ -1,4 +1,3 @@
-'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('ChatroomMessages', {
@@ -8,7 +7,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      senderId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Users',
@@ -39,4 +38,4 @@ module.exports = {
   down: async (queryInterface) => {
     await queryInterface.dropTable('ChatroomMessages');
   }
-} 
+};

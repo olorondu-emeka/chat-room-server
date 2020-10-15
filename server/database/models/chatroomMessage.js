@@ -1,13 +1,11 @@
-'use strict';
- 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const ChatroomMessage = sequelize.define(
     'ChatroomMessage',
     {
       content: {
         type: DataTypes.STRING,
         allowNull: false
-      },
+      }
     },
     {}
   );
@@ -16,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'userId'
     });
     ChatroomMessage.belongsTo(models.Chatroom, {
-      foreignKey: 'chatroomId',
+      foreignKey: 'chatroomId'
     });
-  }
+  };
   return ChatroomMessage;
 };

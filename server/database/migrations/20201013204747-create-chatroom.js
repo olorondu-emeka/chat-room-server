@@ -1,4 +1,3 @@
-'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Chatrooms', {
@@ -8,6 +7,13 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      adminId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Users',
+          key: 'id'
+        }
+      },
       name: {
         type: Sequelize.STRING,
         allowNull: false
@@ -15,11 +21,6 @@ module.exports = {
       description: {
         type: Sequelize.STRING,
         allowNull: false
-      },
-      numberOfMembers: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 0
       },
       createdAt: {
         allowNull: false,

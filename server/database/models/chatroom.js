@@ -1,6 +1,4 @@
-'use strict';
- 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Chatroom = sequelize.define(
     'Chatroom',
     {
@@ -13,9 +11,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
         allowNull: false
-      },
-      numberOfMembers: {
-        type: DataTypes.INTEGER
       }
     },
     {}

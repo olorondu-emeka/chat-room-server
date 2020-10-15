@@ -22,7 +22,10 @@ class Sessions {
   static async create(req, res) {
     try {
       const { email, password } = req.body;
-      const user = await User.findByEmail(email);
+      let user = await User.findOne({
+        where: { email }
+      });
+      user = user.dataValues;
       let verifyPassword;
       if (user) verifyPassword = bcrypt.compareSync(password, user.password);
 

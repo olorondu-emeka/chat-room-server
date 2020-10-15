@@ -19,7 +19,7 @@ const verifyToken = async (request, response, next) => {
       });
     }
     const decoded = await jwt.verify(token, process.env.JWT_KEY);
-    const user = await User.findById(decoded.id, models);
+    const user = await User.findById(decoded.id);
     if (!user) {
       return serverResponse(request, response, 404, {
         message: 'user does not exist'

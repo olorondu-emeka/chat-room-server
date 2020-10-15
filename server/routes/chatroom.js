@@ -5,4 +5,5 @@ import verifyToken from '../middlewares/verifyToken';
 const route = express.Router();
 
 route.post('/', verifyToken, Chatroom.create);
+route.post('/add-members', verifyToken, Chatroom.addMembers);
 export default route;

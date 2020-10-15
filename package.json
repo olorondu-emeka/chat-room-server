@@ -10,7 +10,7 @@
     "db:seed": "sequelize db:seed:all",
     "db:migrate-undo": "sequelize db:migrate:undo:all",
     "db:migrate": "sequelize db:migrate",
-    "db:rollback": "npm run db:migrate-undo && npm run db:migrate && npm run db:seed",
+    "db:rollback": "npm run db:migrate-undo && npm run db:migrate",
     "syncenv": "node envcheck.js",
     "lint": "eslint '**/*.js'",
     "lint:fix": "prettier-eslint '**/*.js' --write"
@@ -27,6 +27,7 @@
   "homepage": "https://github.com/olorondu-emeka/chat-room#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "bluebird": "^3.7.2",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

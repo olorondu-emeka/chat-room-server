@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "nodemon --exec babel-node server",
+    "build": "babel server --out-dir dist",
     "test": "nyc mocha --timeout 20000 -r esm --exit",
     "db:seed": "sequelize db:seed:all",
     "db:migrate-undo": "sequelize db:migrate:undo:all",

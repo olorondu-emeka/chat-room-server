@@ -4,7 +4,7 @@ import models from '../database/models';
 import { serverError, serverResponse } from '../helper';
 // import Users from './User';
 
-const { User, Chatroom } = models;
+const { User, Chatroom, ChatroomMessage } = models;
 
 /**
  * @name convertToBoolean
@@ -115,6 +115,7 @@ export default class Chatrooms {
     try {
       // eslint-disable-next-line no-unused-vars
       let { members } = req.query;
+      const { id: userId } = req.user;
       const { id } = req.params;
       members = convertToBoolean(members);
 
@@ -128,9 +129,13 @@ export default class Chatrooms {
         return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
       }
 
-      // eslint-disable-next-line no-unused-vars
-      let totalMembers;
-      // eslint-disable-next-line no-unused-vars
+      const { adminId } = possibleChatroom.dataValues;
+      if (userId !== adminId) {
+        return serverResponse(req, res, 403, {
+          message: 'user cannot perform this operation'
+        });
+      }
+
       let idArray = await User.findAndCountAll({
         attributes: ['id', 'username']
       });
@@ -161,6 +166,55 @@ export default class Chatrooms {
       });
     } catch (error) {
       // console.log(error);
+      return serverError(req, res, error);
+    }
+  }
+
+  /**
+   * @static
+   * @memberof Chatrooms
+   * @param {Object} req request object
+   * @param {Object} res response object
+   * @returns {Json} json object returned
+   */
+  static async sendChatroomMessage(req, res) {
+    try {
+      const { id } = req.user;
+      const { chatroomId, message } = req.body;
+
+      const possibleChatroom = await Chatroom.findOne({
+        where: {
+          id: chatroomId
+        }
+      });
+
+      if (!possibleChatroom) {
+        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+      }
+
+      let chatroomUsers = await possibleChatroom.getUsers();
+      chatroomUsers = chatroomUsers.map((user) => ({
+        id: user.dataValues.id,
+        username: user.dataValues.username
+      }));
+
+      const isMember = chatroomUsers.some((user) => user.id === id);
+      if (!isMember) {
+        return serverResponse(req, res, 403, {
+          message: 'user cannot perform this operation'
+        });
+      }
+
+      const createdChatroomMessage = await ChatroomMessage.create({
+        senderId: id,
+        chatroomId,
+        content: message.trim()
+      });
+
+      return serverResponse(req, res, 201, {
+        message: createdChatroomMessage.dataValues.content
+      });
+    } catch (error) {
       return serverError(req, res, error);
     }
   }

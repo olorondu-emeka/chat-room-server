@@ -16,10 +16,7 @@ module.exports = {
       },
       recipientId: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Users',
-          key: 'id'
-        }
+        allowNull: false
       },
       content: {
         type: Sequelize.STRING,

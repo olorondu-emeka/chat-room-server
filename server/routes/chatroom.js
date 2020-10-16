@@ -6,5 +6,7 @@ const route = express.Router();
 
 route.post('/', verifyToken, Chatroom.create);
 route.post('/add-members', verifyToken, Chatroom.addMembers);
-route.get('/members/:id', Chatroom.getAllMembers);
+route.post('/message', verifyToken, Chatroom.sendChatroomMessage);
+
+route.get('/members/:id', verifyToken, Chatroom.getAllMembers);
 export default route;

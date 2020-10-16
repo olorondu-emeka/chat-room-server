@@ -11,7 +11,7 @@ export default (sequelize, DataTypes) => {
   );
   ChatroomMessage.associate = (models) => {
     ChatroomMessage.belongsTo(models.User, {
-      foreignKey: 'userId'
+      foreignKey: 'senderId'
     });
     ChatroomMessage.belongsTo(models.Chatroom, {
       foreignKey: 'chatroomId'

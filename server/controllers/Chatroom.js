@@ -198,6 +198,7 @@ export default class Chatrooms {
         username: user.dataValues.username
       }));
 
+      // validate that the user is a member of the chatroom
       const isMember = chatroomUsers.some((user) => user.id === id);
       if (!isMember) {
         return serverResponse(req, res, 403, {
@@ -215,6 +216,62 @@ export default class Chatrooms {
         message: createdChatroomMessage.dataValues.content
       });
     } catch (error) {
+      return serverError(req, res, error);
+    }
+  }
+
+  /**
+   * @static
+   * @memberof Chatrooms
+   * @param {Object} req request object
+   * @param {Object} res response object
+   * @returns {Json} json object returned
+   */
+  static async getChatroomMessages(req, res) {
+    try {
+      const { id: userId } = req.user;
+      const { id } = req.params;
+
+      const possibleChatroom = await Chatroom.findOne({
+        where: {
+          id
+        }
+      });
+
+      if (!possibleChatroom) {
+        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+      }
+
+      let chatroomUsers = await possibleChatroom.getUsers();
+      chatroomUsers = chatroomUsers.map((user) => ({
+        id: user.dataValues.id,
+        username: user.dataValues.username
+      }));
+
+      // validate that the user is a member of the chatroom
+      const isMember = chatroomUsers.some((user) => user.id === userId);
+      if (!isMember) {
+        return serverResponse(req, res, 403, {
+          message: 'user cannot perform this operation'
+        });
+      }
+
+      let chatroomMessages = await ChatroomMessage.findAndCountAll({
+        where: {
+          chatroomId: id
+        },
+        attributes: ['content', 'createdAt'],
+        include: [
+          {
+            model: User,
+            attributes: ['username', 'createdAt']
+          }
+        ]
+      });
+      chatroomMessages = chatroomMessages.rows.map((user) => user.dataValues);
+      return serverResponse(req, res, 200, { messages: chatroomMessages });
+    } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

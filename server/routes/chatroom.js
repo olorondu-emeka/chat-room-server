@@ -9,4 +9,5 @@ route.post('/add-members', verifyToken, Chatroom.addMembers);
 route.post('/message', verifyToken, Chatroom.sendChatroomMessage);
 
 route.get('/members/:id', verifyToken, Chatroom.getAllMembers);
+route.get('/message/:id', verifyToken, Chatroom.getChatroomMessages);
 export default route;

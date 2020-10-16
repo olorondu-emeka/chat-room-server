@@ -1,3 +1,5 @@
+import { get24hrTime } from '../../helper';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('ChatroomMessages', {
@@ -24,6 +26,11 @@ module.exports = {
       content: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      timestamp: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: get24hrTime()
       },
       createdAt: {
         allowNull: false,

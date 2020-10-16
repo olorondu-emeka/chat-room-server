@@ -1,8 +1,21 @@
+/* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import models from '../database/models';
 import { serverError, serverResponse } from '../helper';
+// import Users from './User';
 
-const { Chatroom } = models;
+const { User, Chatroom } = models;
+
+/**
+ * @name convertToBoolean
+ * @param {String} string
+ * @returns {Boolean} boolean
+ */
+function convertToBoolean(string) {
+  if (string === 'true') return true;
+  if (string === 'false') return false;
+  return null;
+}
 
 /**
  * @class Chatrooms
@@ -87,6 +100,67 @@ export default class Chatrooms {
         message: 'members added successfully'
       });
     } catch (error) {
+      return serverError(req, res, error);
+    }
+  }
+
+  /**
+   * @static
+   * @memberof Chatrooms
+   * @param {Object} req request object
+   * @param {Object} res response object
+   * @returns {Json} json object returned
+   */
+  static async getAllMembers(req, res) {
+    try {
+      // eslint-disable-next-line no-unused-vars
+      let { members } = req.query;
+      const { id } = req.params;
+      members = convertToBoolean(members);
+
+      const possibleChatroom = await Chatroom.findOne({
+        where: {
+          id
+        }
+      });
+
+      if (!possibleChatroom) {
+        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+      }
+
+      // eslint-disable-next-line no-unused-vars
+      let totalMembers;
+      // eslint-disable-next-line no-unused-vars
+      let idArray = await User.findAndCountAll({
+        attributes: ['id', 'username']
+      });
+      idArray = idArray.rows.map((user) => user.dataValues);
+
+      let chatroomUsers = await possibleChatroom.getUsers();
+      chatroomUsers = chatroomUsers.map((user) => ({
+        id: user.dataValues.id,
+        username: user.dataValues.username
+      }));
+
+      const idObject = {};
+      for (let i = 0; i < chatroomUsers.length; i++) {
+        idObject[chatroomUsers[i].id] = true;
+      }
+
+      let finalUsers;
+      // if members is true, return chatroom members only
+      if (members) {
+        finalUsers = chatroomUsers;
+      } else {
+        // return users that are not chatroom members
+        finalUsers = idArray.filter((user) => !idObject[user.id]);
+      }
+
+      return serverResponse(req, res, 200, {
+        users: finalUsers
+      });
+    } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

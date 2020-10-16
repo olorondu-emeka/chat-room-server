@@ -16,6 +16,7 @@ app.use('*', (request, response) => {
   response.status(404).send('Not Found');
 });
 
-app.listen(PORT, () => `Server started on port ${PORT}`);
+// eslint-disable-next-line no-console
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
 export default app;

@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import models from '../database/models';
 import { serverError, serverResponse } from '../helper';
@@ -114,12 +115,12 @@ export default class Chatrooms {
     try {
       // eslint-disable-next-line no-unused-vars
       let { members } = req.query;
-      const { chatroomId } = req.body;
+      const { id } = req.params;
       members = convertToBoolean(members);
 
       const possibleChatroom = await Chatroom.findOne({
         where: {
-          id: chatroomId
+          id
         }
       });
 
@@ -130,30 +131,36 @@ export default class Chatrooms {
       // eslint-disable-next-line no-unused-vars
       let totalMembers;
       // eslint-disable-next-line no-unused-vars
-      const idArray = await User.findAndCountAll({
-        attributes: {
-          exclude: ['username', 'password', 'email', 'createdAt', 'updatedAt']
-        }
+      let idArray = await User.findAndCountAll({
+        attributes: ['id', 'username']
       });
-      const allChatroomMembers = await possibleChatroom.getUsers();
-      return serverResponse(req, res, 200, allChatroomMembers);
+      idArray = idArray.rows.map((user) => user.dataValues);
 
-      // const idObject = {};
-      // for(let i = 0; i < idObject.length, i++) {
-      //   idObject[]
-      // }
+      let chatroomUsers = await possibleChatroom.getUsers();
+      chatroomUsers = chatroomUsers.map((user) => ({
+        id: user.dataValues.id,
+        username: user.dataValues.username
+      }));
 
-      // totalMembers = allMembers.dataValues.length;
+      const idObject = {};
+      for (let i = 0; i < chatroomUsers.length; i++) {
+        idObject[chatroomUsers[i].id] = true;
+      }
 
-      // console.log('all members', allMembers);
+      let finalUsers;
+      // if members is true, return chatroom members only
+      if (members) {
+        finalUsers = chatroomUsers;
+      } else {
+        // return users that are not chatroom members
+        finalUsers = idArray.filter((user) => !idObject[user.id]);
+      }
 
-      // // retrueve all users that belong to this chatroom
-      // if() {
-
-      // } else {
-
-      // }
+      return serverResponse(req, res, 200, {
+        users: finalUsers
+      });
     } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

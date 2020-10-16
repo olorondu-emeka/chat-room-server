@@ -185,5 +185,33 @@ describe('Setup Chatroom messages', () => {
     });
   });
 
-  // describe('Retrieve Chatroom messages', () => {});
+  describe('Retrieve Chatroom messages', () => {
+    it('should return all the chatroom messages to a member', async () => {
+      const response = await chai
+        .request(server)
+        .get(`/api/v1/chatroom/message/${createdChatroom.id}`)
+        .set('Authorization', newChatroomMember1.token);
+
+      expect(response).to.have.status(200);
+      expect(response.body.messages).to.be.an('array');
+    });
+
+    it('should return an unauthorized error for a get attempt by a non-member', async () => {
+      const response = await chai
+        .request(server)
+        .get(`/api/v1/chatroom/message/${createdChatroom.id}`)
+        .set('Authorization', createdIsolatedUser.token);
+
+      expect(response).to.have.status(403);
+    });
+
+    it('should return a 404 error for a non-existent chatroom', async () => {
+      const response = await chai
+        .request(server)
+        .get(`/api/v1/chatroom/message/${0}`)
+        .set('Authorization', createdIsolatedUser.token);
+
+      expect(response).to.have.status(404);
+    });
+  });
 });

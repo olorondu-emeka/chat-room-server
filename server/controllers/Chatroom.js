@@ -260,11 +260,11 @@ export default class Chatrooms {
         where: {
           chatroomId: id
         },
-        attributes: ['content', 'createdAt'],
+        attributes: ['content', 'timestamp'],
         include: [
           {
             model: User,
-            attributes: ['username', 'createdAt']
+            attributes: ['username']
           }
         ]
       });

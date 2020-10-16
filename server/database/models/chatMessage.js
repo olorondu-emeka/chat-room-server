@@ -4,14 +4,14 @@ export default (sequelize, DataTypes) => {
     {
       content: {
         type: DataTypes.STRING,
-        allowNull: false,
-      },
+        allowNull: false
+      }
     },
     {}
   );
   ChatMessage.associate = (models) => {
     ChatMessage.belongsTo(models.User, {
-      foreignKey: 'userId',
+      foreignKey: 'senderId'
     });
   };
   return ChatMessage;

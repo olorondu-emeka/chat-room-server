@@ -25,7 +25,10 @@ export default (sequelize, DataTypes) => {
       foreignKey: 'userId'
     });
     User.hasMany(models.ChatroomMessage, {
-      foreignKey: 'userId'
+      foreignKey: 'senderId'
+    });
+    User.hasMany(models.ChatMessage, {
+      foreignKey: 'senderId'
     });
     User.belongsToMany(models.Chatroom, {
       foreignKey: 'userId',

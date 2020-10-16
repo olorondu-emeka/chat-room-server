@@ -9,4 +9,10 @@ const getNewChatroom = () => ({
   description: faker.lorem.sentence()
 });
 
-export default getNewChatroom;
+/**
+ * @name getNewMessage
+ * @returns {object} a new chatroom object
+ */
+const getNewChatroomMessage = () => faker.lorem.sentence();
+
+export { getNewChatroom, getNewChatroomMessage };

@@ -21,9 +21,9 @@ class Sessions {
    */
   static async create(req, res) {
     try {
-      const { email, password } = req.body;
+      const { username, password } = req.body;
       let user = await User.findOne({
-        where: { email }
+        where: { username }
       });
       user = user.dataValues;
       let verifyPassword;

@@ -23,8 +23,8 @@ export default class Users {
    */
   static async create(req, res) {
     try {
-      const { username, email, password } = req.body;
-      const possibleUser = await User.findByEmail(email);
+      const { username, password } = req.body;
+      const possibleUser = await User.findByUsername(username);
 
       if (possibleUser) {
         return serverResponse(req, res, 409, {
@@ -45,7 +45,6 @@ export default class Users {
       const hashedPassword = await bcrypt.hash(password, 10);
       const createdUser = await User.create({
         username,
-        email,
         password: hashedPassword
       });
 
@@ -66,7 +65,7 @@ export default class Users {
 
       return serverResponse(req, res, 201, { ...data });
     } catch (error) {
-      //   console.log(error);
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

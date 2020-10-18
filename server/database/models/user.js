@@ -7,11 +7,6 @@ export default (sequelize, DataTypes) => {
         unique: true,
         allowNull: false
       },
-      email: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
-      },
       password: {
         type: DataTypes.STRING,
         allowNull: false
@@ -39,9 +34,9 @@ export default (sequelize, DataTypes) => {
       onDelete: 'CASCADE'
     });
   };
-  User.findByEmail = async (email) => {
+  User.findByUsername = async (username) => {
     const user = await User.findOne({
-      where: { email },
+      where: { username },
       attributes: { exclude: ['password'] }
     });
     if (user) return user.dataValues;

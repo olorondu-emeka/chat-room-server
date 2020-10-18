@@ -7,7 +7,6 @@ import faker from 'faker';
 const getNewUser = () => {
   const newUser = {
     username: faker.internet.userName(),
-    email: faker.internet.email(),
     password: faker.internet.password()
   };
   return newUser;

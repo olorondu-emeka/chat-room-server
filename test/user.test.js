@@ -23,7 +23,7 @@ describe('Setup User', () => {
     const response = await chai
       .request(server)
       .post('/api/v1/session/create')
-      .send({ email: newUser.email, password: newUser.password });
+      .send({ username: newUser.username, password: newUser.password });
 
     expect(response).to.have.status(200);
   });

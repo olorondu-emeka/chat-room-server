@@ -25,6 +25,10 @@ class Sessions {
       let user = await User.findOne({
         where: { username }
       });
+      if (!user) {
+        return serverResponse(req, res, 404, { message: 'user does not exist' });
+      }
+
       user = user.dataValues;
       let verifyPassword;
       if (user) verifyPassword = bcrypt.compareSync(password, user.password);

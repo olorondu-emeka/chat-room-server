@@ -260,16 +260,66 @@ export default class Chatrooms {
         where: {
           chatroomId: id
         },
-        attributes: ['content', 'timestamp'],
+        attributes: ['id', 'content', 'timestamp'],
         include: [
           {
             model: User,
-            attributes: ['username']
+            attributes: ['id', 'username']
           }
         ]
       });
       chatroomMessages = chatroomMessages.rows.map((user) => user.dataValues);
       return serverResponse(req, res, 200, { messages: chatroomMessages });
+    } catch (error) {
+      // console.log(error);
+      return serverError(req, res, error);
+    }
+  }
+
+  /**
+   * @static
+   * @memberof Chatrooms
+   * @param {Object} req request object
+   * @param {Object} res response object
+   * @returns {Json} json object returned
+   */
+  static async getAllChatrooms(req, res) {
+    try {
+      const { id } = req.user;
+      let allChatrooms = await Chatroom.findAndCountAll({
+        attributes: ['id', 'adminId', 'name', 'description']
+      });
+      allChatrooms = allChatrooms.rows;
+      // allChatrooms = allChatrooms.rows.map((chatroom) => chatroom.dataValues);
+      if (allChatrooms.length === 0) {
+        return serverResponse(req, res, 200, { chatrooms: allChatrooms });
+      }
+
+      // an array of objects, where each object is key-value pairs of all the members of a particular chatroom
+      const chatroomArray = [];
+
+      // return all chatrooms that the user is a member of
+
+      // TODO: optimize from 0(n*n) to 0(n)
+      await promise.map(
+        allChatrooms,
+        async (chatroom) => {
+          // chatroomObject[chatroom.id] = chatroom.dataValues;
+          const chatroomMembers = await chatroom.getUsers({
+            attributes: ['id', 'username']
+          });
+          // chatroomAndMembers[chatroom.id] = chatroomMembers;
+          const isMember = chatroomMembers.some((user) => user.id === id);
+          if (isMember) {
+            chatroomArray.push(chatroom);
+          }
+        },
+        { concurrency: 1 }
+      );
+      // console.log(chatroomArray);
+
+      // for (let key of chatroomObject)
+      return serverResponse(req, res, 200, { chatrooms: chatroomArray });
     } catch (error) {
       // console.log(error);
       return serverError(req, res, error);

@@ -1,7 +1,7 @@
 /* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import models from '../database/models';
-import { serverError, serverResponse } from '../helper';
+import { serverError, serverResponse, socketIO } from '../helper';
 // import Users from './User';
 
 const { User, Chatroom, ChatroomMessage } = models;
@@ -68,6 +68,7 @@ export default class Chatrooms {
     try {
       const { id } = req.user;
       const { chatroomId, memberIdArray } = req.body;
+      const usersObject = {};
 
       const possibleChatroom = await Chatroom.findOne({
         where: {
@@ -78,7 +79,9 @@ export default class Chatrooms {
       // console.log(possibleChatroom, chatroomId);
 
       if (!possibleChatroom) {
-        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+        return serverResponse(req, res, 404, {
+          message: 'chatroom does not exist'
+        });
       }
 
       const { adminId } = possibleChatroom.dataValues;
@@ -92,9 +95,24 @@ export default class Chatrooms {
         memberIdArray,
         async (memberId) => {
           await possibleChatroom.addUsers(memberId);
+          usersObject[memberId] = true;
         },
         { concurrency: 1 }
       );
+
+      // join socket room
+      socketIO.getIO().on('connection', (socket) => {
+        socket.on('userConnected', (userId) => {
+          if (usersObject[userId]) {
+            // eslint-disable-next-line no-console
+            console.log('user connected');
+            socketIO
+              .getIO()
+              .to(userId)
+              .broadcast('join chatroom', possibleChatroom.dataValues);
+          }
+        });
+      });
 
       return serverResponse(req, res, 201, {
         message: 'members added successfully'
@@ -126,7 +144,9 @@ export default class Chatrooms {
       });
 
       if (!possibleChatroom) {
-        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+        return serverResponse(req, res, 404, {
+          message: 'chatroom does not exist'
+        });
       }
 
       const { adminId } = possibleChatroom.dataValues;
@@ -189,7 +209,9 @@ export default class Chatrooms {
       });
 
       if (!possibleChatroom) {
-        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+        return serverResponse(req, res, 404, {
+          message: 'chatroom does not exist'
+        });
       }
 
       let chatroomUsers = await possibleChatroom.getUsers();
@@ -239,7 +261,9 @@ export default class Chatrooms {
       });
 
       if (!possibleChatroom) {
-        return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+        return serverResponse(req, res, 404, {
+          message: 'chatroom does not exist'
+        });
       }
 
       let chatroomUsers = await possibleChatroom.getUsers();

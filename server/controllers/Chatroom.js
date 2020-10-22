@@ -2,7 +2,6 @@
 import promise from 'bluebird';
 import models from '../database/models';
 import { serverError, serverResponse, socketIO } from '../helper';
-// import Users from './User';
 
 const { User, Chatroom, ChatroomMessage } = models;
 
@@ -53,6 +52,7 @@ export default class Chatrooms {
 
       return serverResponse(req, res, 201, { ...createdChatroom.dataValues });
     } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }
@@ -68,7 +68,8 @@ export default class Chatrooms {
     try {
       const { id } = req.user;
       const { chatroomId, memberIdArray } = req.body;
-      const usersObject = {};
+      const io = socketIO.getIO();
+      // const usersObject = {};
 
       const possibleChatroom = await Chatroom.findOne({
         where: {
@@ -95,29 +96,20 @@ export default class Chatrooms {
         memberIdArray,
         async (memberId) => {
           await possibleChatroom.addUsers(memberId);
-          usersObject[memberId] = true;
         },
         { concurrency: 1 }
       );
 
-      // join socket room
-      socketIO.getIO().on('connection', (socket) => {
-        socket.on('userConnected', (userId) => {
-          if (usersObject[userId]) {
-            // eslint-disable-next-line no-console
-            console.log('user connected');
-            socketIO
-              .getIO()
-              .to(userId)
-              .broadcast('join chatroom', possibleChatroom.dataValues);
-          }
-        });
+      io.sockets.emit('join chatroom', {
+        memberIdArray,
+        chatroom: possibleChatroom.dataValues
       });
 
       return serverResponse(req, res, 201, {
         message: 'members added successfully'
       });
     } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

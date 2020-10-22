@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import { config } from 'dotenv';
 import routes from './routes';
 import { socketIO } from './helper';
+
+config();
 
 const { urlencoded, json } = express;
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));

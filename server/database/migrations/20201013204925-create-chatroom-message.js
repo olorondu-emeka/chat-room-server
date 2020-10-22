@@ -30,7 +30,10 @@ module.exports = {
       timestamp: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: get24hrTime()
+        defaultValue: get24hrTime(
+          new Date().getHours(),
+          new Date().getMinutes()
+        )
       },
       createdAt: {
         allowNull: false,

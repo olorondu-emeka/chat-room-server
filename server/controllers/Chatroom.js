@@ -1,7 +1,9 @@
 /* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import models from '../database/models';
-import { serverError, serverResponse, socketIO } from '../helper';
+import {
+  serverError, serverResponse, socketIO, get24hrTime
+} from '../helper';
 
 const { User, Chatroom, ChatroomMessage } = models;
 
@@ -193,6 +195,7 @@ export default class Chatrooms {
     try {
       const { id } = req.user;
       const { chatroomId, message } = req.body;
+      const io = socketIO.getIO();
 
       const possibleChatroom = await Chatroom.findOne({
         where: {
@@ -223,13 +226,35 @@ export default class Chatrooms {
       const createdChatroomMessage = await ChatroomMessage.create({
         senderId: id,
         chatroomId,
-        content: message.trim()
+        content: message.trim(),
+        timestamp: get24hrTime(new Date().getHours(), new Date().getMinutes())
+      });
+
+      const { id: createdMessageId } = createdChatroomMessage.dataValues;
+
+      const possibleChatroomMessage = await ChatroomMessage.findOne({
+        where: {
+          id: createdMessageId
+        },
+        attributes: ['id', 'content', 'timestamp'],
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'username']
+          }
+        ]
+      });
+
+      io.sockets.emit('chatroom message', {
+        chatroomId,
+        message: possibleChatroomMessage.dataValues
       });
 
       return serverResponse(req, res, 201, {
         message: createdChatroomMessage.dataValues.content
       });
     } catch (error) {
+      // console.log(error);
       return serverError(req, res, error);
     }
   }

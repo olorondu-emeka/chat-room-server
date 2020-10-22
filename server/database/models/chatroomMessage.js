@@ -5,7 +5,8 @@ export default (sequelize, DataTypes) => {
       content: {
         type: DataTypes.STRING,
         allowNull: false
-      }
+      },
+      timestamp: DataTypes.STRING
     },
     {}
   );

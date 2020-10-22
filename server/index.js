@@ -11,6 +11,9 @@ app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
+app.get('/', (request, response) => {
+  response.status(200).send('Welcome!');
+});
 app.use('/api/v1', routes);
 
 app.use('*', (request, response) => {

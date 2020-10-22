@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import routes from './routes';
+import { socketIO } from './helper';
 
 const { urlencoded, json } = express;
 
@@ -16,7 +17,11 @@ app.use('*', (request, response) => {
   response.status(404).send('Not Found');
 });
 
-// eslint-disable-next-line no-console
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+const server = app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Server started on port ${PORT}`);
+});
+
+socketIO.init(server);
 
 export default app;

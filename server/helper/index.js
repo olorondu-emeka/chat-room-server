@@ -3,6 +3,7 @@ import getUserAgent from './getUserAgent';
 import serverResponses from './serverResponse';
 import expiryDate from './expiryDate';
 import get24hrTime from './get24hrTime';
+import socketIO from './socket';
 
 const { serverError, serverResponse } = serverResponses;
 
@@ -12,5 +13,6 @@ export {
   generateToken,
   getUserAgent,
   expiryDate,
-  get24hrTime
+  get24hrTime,
+  socketIO
 };

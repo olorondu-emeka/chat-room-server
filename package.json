@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "nodemon --exec babel-node server",
     "prod:build": "npm run clean && npm run build && npm run start",
-    "start": "pm2 start node dist/index.js",
+    "start": "pm2 start node dist/index.js && pm2 logs all",
     "stop:all": "pm2 stop all",
     "build": "babel server --out-dir dist",
     "clean": "rm -rf ./build ",
@@ -19,7 +19,8 @@
     "syncenv": "node envcheck.js",
     "lint": "eslint '**/*.js'",
     "lint:fix": "prettier-eslint '**/*.js' --write",
-    "heroku-postbuild": "npm run clean && npm run build && npm run start"
+    "heroku-postbuild": "npm run clean && npm run build && npm run start",
+    "preinstall": "npm i -g pm2 && pm2 install pm2-logrotate"
   },
   "repository": {
     "type": "git",

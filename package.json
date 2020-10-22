@@ -17,7 +17,8 @@
     "db:rollback": "npm run db:migrate-undo && npm run db:migrate",
     "syncenv": "node envcheck.js",
     "lint": "eslint '**/*.js'",
-    "lint:fix": "prettier-eslint '**/*.js' --write"
+    "lint:fix": "prettier-eslint '**/*.js' --write",
+    "heroku-postbuild": "npm run clean && npm run build && npm run start"
   },
   "repository": {
     "type": "git",

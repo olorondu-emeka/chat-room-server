@@ -11,6 +11,7 @@
     "build": "babel server --out-dir dist",
     "clean": "rm -rf ./build ",
     "test": "nyc mocha --timeout 20000 -r esm --exit",
+    "pm2:log": "pm2 log",
     "db:seed": "sequelize db:seed:all",
     "db:migrate-undo": "sequelize db:migrate:undo:all",
     "db:migrate": "sequelize db:migrate",

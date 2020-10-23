@@ -8,7 +8,7 @@
     "prod:build": "npm run clean && npm run build && npm run start",
     "start": "node dist/index.js",
     "stop:all": "pm2 stop all",
-    "build": "npm run clean && babel server --out-dir dist",
+    "build": "babel server --out-dir dist",
     "clean": "rm -rf ./build ",
     "test": "nyc mocha --timeout 20000 -r esm --exit",
     "pm2:log": "pm2 log",

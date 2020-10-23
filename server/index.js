@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
+import helmet from 'helmet';
+import compression from 'compression';
 import routes from './routes';
 import { socketIO } from './helper';
 
@@ -11,7 +13,9 @@ const { urlencoded, json } = express;
 const app = express();
 const PORT = process.env.PORT || 5000;
 app.use(cors());
+app.use(helmet());
 app.use(json());
+app.use(compression());
 app.use(urlencoded({ extended: true }));
 
 app.get('/', (request, response) => {

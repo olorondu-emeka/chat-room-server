@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import models from '../database/models';
@@ -272,6 +273,7 @@ export default class Chatrooms {
       const { id: userId } = req.user;
       const { id } = req.params;
       const redisClient = redisConfig.getClient();
+      const cachedMessages = [];
 
       const possibleChatroom = await Chatroom.findOne({
         where: {
@@ -311,19 +313,26 @@ export default class Chatrooms {
           }
         ]
       });
-      chatroomMessages = chatroomMessages.rows.map((user) => user.dataValues);
+      chatroomMessages = chatroomMessages.rows.map((message) => {
+        cachedMessages.push(JSON.stringify(message));
+        return message.dataValues;
+      });
 
       // save in redis
       if (process.env.NODE_ENV !== 'test') {
-        redisClient.lpush(
-          `chatroomMessage__chatroomId:${id}`,
-          ...chatroomMessages
-        );
+        try {
+          redisClient.lpush(
+            `chatroomMessage__chatroomId:${id}`,
+            ...cachedMessages
+          );
+        } catch (error) {
+          console.log('redis error', error);
+        }
       }
 
       return serverResponse(req, res, 200, { messages: chatroomMessages });
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       return serverError(req, res, error);
     }
   }

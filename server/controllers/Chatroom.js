@@ -4,6 +4,9 @@ import models from '../database/models';
 import {
   serverError, serverResponse, socketIO, get24hrTime
 } from '../helper';
+import redisConfig from '../helper/redisConfig';
+
+const redisClient = redisConfig.getClient();
 
 const { User, Chatroom, ChatroomMessage } = models;
 
@@ -310,6 +313,15 @@ export default class Chatrooms {
         ]
       });
       chatroomMessages = chatroomMessages.rows.map((user) => user.dataValues);
+
+      // save in redis
+      if (process.env.NODE_ENV !== 'test') {
+        redisClient.lpush(
+          `chatroomMessage__chatroomId:${id}`,
+          ...chatroomMessages
+        );
+      }
+
       return serverResponse(req, res, 200, { messages: chatroomMessages });
     } catch (error) {
       // console.log(error);

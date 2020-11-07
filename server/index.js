@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import helmet from 'helmet';
 import compression from 'compression';
 import routes from './routes';
-import { socketIO } from './helper';
+import { socketIO, redisConfig } from './helper';
 
 config();
 
@@ -27,9 +27,16 @@ app.use('*', (request, response) => {
   response.status(404).send('Not Found');
 });
 
+const redisClient = redisConfig.init();
+
 const server = app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server started on port ${PORT}`);
+});
+
+redisClient.on('connect', () => {
+  // eslint-disable-next-line no-console
+  console.log('Redis server connected');
 });
 
 socketIO.init(server);

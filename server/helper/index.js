@@ -4,6 +4,7 @@ import serverResponses from './serverResponse';
 import expiryDate from './expiryDate';
 import get24hrTime from './get24hrTime';
 import socketIO from './socket';
+import redisConfig from './redisConfig';
 
 const { serverError, serverResponse } = serverResponses;
 
@@ -14,5 +15,6 @@ export {
   getUserAgent,
   expiryDate,
   get24hrTime,
-  socketIO
+  socketIO,
+  redisConfig
 };

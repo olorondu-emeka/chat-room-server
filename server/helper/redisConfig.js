@@ -1,21 +1,17 @@
 import redis from 'redis';
-import { config } from 'dotenv';
 
-config();
-
-let redisCient;
-const REDIS_PORT = process.env.REDIS_PORT || 6432;
+let redisClient;
 
 const redisConfig = {
   init: () => {
-    redisCient = redis.createClient(REDIS_PORT);
-    return redisCient;
+    redisClient = redis.createClient();
+    return redisClient;
   },
   getClient: () => {
-    if (!redisCient) {
+    if (!redisClient) {
       throw new Error('Redis client not initiated');
     }
-    return redisCient;
+    return redisClient;
   }
 };
 

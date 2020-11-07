@@ -27,16 +27,17 @@ app.use('*', (request, response) => {
   response.status(404).send('Not Found');
 });
 
-const redisClient = redisConfig.init();
+if (process.env.NODE_ENV !== 'test') {
+  const redisClient = redisConfig.init();
+  redisClient.on('connect', () => {
+    // eslint-disable-next-line no-console
+    console.log('Redis server connected');
+  });
+}
 
 const server = app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server started on port ${PORT}`);
-});
-
-redisClient.on('connect', () => {
-  // eslint-disable-next-line no-console
-  console.log('Redis server connected');
 });
 
 socketIO.init(server);

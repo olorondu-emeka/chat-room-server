@@ -6,8 +6,6 @@ import {
 } from '../helper';
 import redisConfig from '../helper/redisConfig';
 
-const redisClient = redisConfig.getClient();
-
 const { User, Chatroom, ChatroomMessage } = models;
 
 /**
@@ -273,6 +271,7 @@ export default class Chatrooms {
     try {
       const { id: userId } = req.user;
       const { id } = req.params;
+      const redisClient = redisConfig.getClient();
 
       const possibleChatroom = await Chatroom.findOne({
         where: {

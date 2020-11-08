@@ -1,14 +1,29 @@
 import express from 'express';
 import Chatroom from '../controllers/Chatroom';
-import verifyToken from '../middlewares/verifyToken';
+import {
+  verifyToken,
+  verifyChatroomMember,
+  getCachedMessages
+} from '../middlewares';
 
 const route = express.Router();
 
 route.post('/', verifyToken, Chatroom.create);
 route.post('/add-members', verifyToken, Chatroom.addMembers);
-route.post('/message', verifyToken, Chatroom.sendChatroomMessage);
+route.post(
+  '/message',
+  verifyToken,
+  verifyChatroomMember,
+  Chatroom.sendChatroomMessage
+);
 
 route.get('/members/:id', verifyToken, Chatroom.getAllMembers);
-route.get('/message/:id', verifyToken, Chatroom.getChatroomMessages);
+route.get(
+  '/message/:id',
+  verifyToken,
+  verifyChatroomMember,
+  getCachedMessages,
+  Chatroom.getChatroomMessages
+);
 route.get('/', verifyToken, Chatroom.getAllChatrooms);
 export default route;

@@ -17,6 +17,13 @@ route.post(
   Chatroom.sendChatroomMessage
 );
 
+route.patch(
+  '/:id/checkpoint',
+  verifyToken,
+  verifyChatroomMember,
+  Chatroom.updateCheckpoint
+);
+
 route.get('/members/:id', verifyToken, Chatroom.getAllMembers);
 route.get(
   '/message/:id',

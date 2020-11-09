@@ -203,32 +203,6 @@ export default class Chatrooms {
       const { chatroomId, message } = req.body;
       const io = socketIO.getIO();
 
-      // const possibleChatroom = await Chatroom.findOne({
-      //   where: {
-      //     id: chatroomId
-      //   }
-      // });
-
-      // if (!possibleChatroom) {
-      //   return serverResponse(req, res, 404, {
-      //     message: 'chatroom does not exist'
-      //   });
-      // }
-
-      // let chatroomUsers = await possibleChatroom.getUsers();
-      // chatroomUsers = chatroomUsers.map((user) => ({
-      //   id: user.dataValues.id,
-      //   username: user.dataValues.username
-      // }));
-
-      // // validate that the user is a member of the chatroom
-      // const isMember = chatroomUsers.some((user) => user.id === id);
-      // if (!isMember) {
-      //   return serverResponse(req, res, 403, {
-      //     message: 'user cannot perform this operation'
-      //   });
-      // }
-
       const createdChatroomMessage = await ChatroomMessage.create({
         senderId: id,
         chatroomId,
@@ -367,7 +341,7 @@ export default class Chatrooms {
         }
       }
 
-      // console.log('cached messages', cachedMessages);
+      console.log('cached messages', cachedMessages);
 
       // save in redis
       if (process.env.NODE_ENV !== 'test' && cachedMessages.length > 0) {
@@ -438,5 +412,30 @@ export default class Chatrooms {
       // console.log(error);
       return serverError(req, res, error);
     }
+  }
+
+  /**
+   * @static
+   * @memberof Chatrooms
+   * @param {Object} req request object
+   * @param {Object} res response object
+   * @returns {Json} json object returned
+   */
+  static async updateCheckpoint(req, res) {
+    const { id: userId } = req.user;
+    const { id } = req.params;
+    const { messageId } = req.body;
+
+    await ChatroomMessageCheckpoint.update(
+      { lastMessageId: messageId },
+      {
+        where: {
+          userId,
+          chatroomId: id
+        }
+      }
+    );
+
+    return serverResponse(req, res, 200, { message: 'checkpoint updated' });
   }
 }

@@ -2,13 +2,16 @@
 /* eslint-disable no-plusplus */
 import promise from 'bluebird';
 import { promisify } from 'util';
+import { Op } from 'sequelize';
 import models from '../database/models';
 import {
   serverError, serverResponse, socketIO, get24hrTime
 } from '../helper';
 import redisConfig from '../helper/redisConfig';
 
-const { User, Chatroom, ChatroomMessage } = models;
+const {
+  User, Chatroom, ChatroomMessage, ChatroomMessageCheckpoint
+} = models;
 
 /**
  * @name convertToBoolean
@@ -235,6 +238,16 @@ export default class Chatrooms {
 
       const { id: createdMessageId } = createdChatroomMessage.dataValues;
 
+      // update lastMessageId in Chatroom
+      await Chatroom.update(
+        { lastMessageId: createdMessageId },
+        {
+          where: {
+            id: chatroomId
+          }
+        }
+      );
+
       const possibleChatroomMessage = await ChatroomMessage.findOne({
         where: {
           id: createdMessageId
@@ -271,40 +284,41 @@ export default class Chatrooms {
    */
   static async getChatroomMessages(req, res) {
     try {
+      const { id: userId } = req.user;
       const { id } = req.params;
       const redisClient = redisConfig.getClient();
-      const lpushAsync = promisify(redisClient.lpush).bind(redisClient);
+      const rpushAsync = promisify(redisClient.rpush).bind(redisClient);
       const cachedMessages = [];
+      const io = socketIO.getIO();
 
-      // const possibleChatroom = await Chatroom.findOne({
-      //   where: {
-      //     id
-      //   }
-      // });
+      console.log('previously cached messages', req.previouslyCachedMessages);
 
-      // if (!possibleChatroom) {
-      //   return serverResponse(req, res, 404, {
-      //     message: 'chatroom does not exist'
-      //   });
-      // }
+      // send back previously cached messages as an event
+      if (req.previouslyCachedMessages && req.previouslyCachedMessages.length > 0) {
+        io.sockets.emit('cached messages', {
+          userId,
+          chatroomId: id,
+          messages: req.previouslyCachedMessages
+        });
+      }
 
-      // let chatroomUsers = await possibleChatroom.getUsers();
-      // chatroomUsers = chatroomUsers.map((user) => ({
-      //   id: user.dataValues.id,
-      //   username: user.dataValues.username
-      // }));
+      // ....
+      let condition = {
+        chatroomId: id
+      };
 
-      // // validate that the user is a member of the chatroom
-      // const isMember = chatroomUsers.some((user) => user.id === userId);
-      // if (!isMember) {
-      //   return serverResponse(req, res, 403, {
-      //     message: 'user cannot perform this operation'
-      //   });
-      // }
+      if (req.userLastMessageId) {
+        condition = {
+          ...condition,
+          id: {
+            [Op.gt]: req.userLastMessageId
+          }
+        };
+      }
 
       let chatroomMessages = await ChatroomMessage.findAndCountAll({
         where: {
-          chatroomId: id
+          ...condition
         },
         attributes: ['id', 'content', 'timestamp'],
         include: [
@@ -314,16 +328,58 @@ export default class Chatrooms {
           }
         ]
       });
-      chatroomMessages = chatroomMessages.rows.map((message) => {
-        cachedMessages.push(JSON.stringify(message));
-        return message.dataValues;
-      });
+
+      if (chatroomMessages.rows.length > 0) {
+        chatroomMessages = chatroomMessages.rows.map((message) => {
+          cachedMessages.push(JSON.stringify(message));
+          return message.dataValues;
+        });
+      } else {
+        chatroomMessages = [];
+      }
+
+      // update last message checkpoint for the user as related to the current chatroom
+      if (chatroomMessages.length > 0) {
+        const lastMessage = chatroomMessages[chatroomMessages.length - 1];
+        const possibleCheckpoint = await ChatroomMessageCheckpoint.findOne({
+          where: {
+            userId,
+            chatroomId: id
+          }
+        });
+
+        if (!possibleCheckpoint) {
+          await ChatroomMessageCheckpoint.create({
+            userId,
+            chatroomId: id,
+            lastMessageId: lastMessage.id
+          });
+        } else {
+          await ChatroomMessageCheckpoint.update(
+            { lastMessageId: lastMessage.id },
+            {
+              where: {
+                userId,
+                chatroomId: id
+              }
+            }
+          );
+        }
+      }
+
+      // console.log('cached messages', cachedMessages);
 
       // save in redis
-      if (process.env.NODE_ENV !== 'test') {
-        await lpushAsync(
-          `chatroomMessage__chatroomId:${id}`,
-          ...cachedMessages
+      if (process.env.NODE_ENV !== 'test' && cachedMessages.length > 0) {
+        await promise.map(
+          cachedMessages,
+          async (message) => {
+            await rpushAsync(
+              `chatroomMessage__chatroomId:${id}__userId:${userId}`,
+              message
+            );
+          },
+          { concurrency: 1 }
         );
       }
 

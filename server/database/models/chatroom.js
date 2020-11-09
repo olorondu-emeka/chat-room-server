@@ -15,6 +15,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
         allowNull: false
+      },
+      lastMessageId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     },
     {}

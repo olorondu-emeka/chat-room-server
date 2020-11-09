@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
 import { promisify } from 'util';
 import { redisConfig, serverError, serverResponse } from '../helper';
+import models from '../database/models';
+
+const { Chatroom, ChatroomMessageCheckpoint } = models;
 
 /**
  * retrieves cached messages from redis
@@ -11,27 +14,70 @@ import { redisConfig, serverError, serverResponse } from '../helper';
  * @returns {json} json object containing the cached messages
  */
 const getCachedMessages = async (req, res, next) => {
-  if (process.env.NODE_ENV === 'test') next();
+  if (process.env.NODE_ENV === 'test') {
+    next();
+    return;
+  }
   const redisClient = redisConfig.getClient();
   const lrangeAsync = promisify(redisClient.lrange).bind(redisClient);
 
   try {
-    const { id } = req.params;
+    const { id: chatroomId } = req.params;
+    const { id: userId } = req.user;
 
     let chatroomMessages = await lrangeAsync(
-      `chatroomMessage__chatroomId:${id}`,
+      `chatroomMessage__chatroomId:${chatroomId}__userId:${userId}`,
       0,
       -1
     );
 
-    if (!chatroomMessages.length) next();
-    console.log('chatroom messages', chatroomMessages);
+    if (!chatroomMessages.length) {
+      next();
+      return;
+    }
+
+    const chatroom = await Chatroom.findOne({
+      where: {
+        id: chatroomId
+      }
+    });
+
+    if (!chatroom) {
+      return serverResponse(req, res, 404, { message: 'chatroom does not exist' });
+    }
+
+    const checkpoint = await ChatroomMessageCheckpoint.findOne({
+      where: {
+        userId,
+        chatroomId
+      }
+    });
+
+    if (!checkpoint) {
+      next();
+      return;
+    }
+
+    console.log('hello');
+
+    let userLastMessageId;
+    if (checkpoint !== null) {
+      userLastMessageId = checkpoint.dataValues.lastMessageId;
+    }
+    const { lastMessageId: chatroomLastMessageId } = chatroom.dataValues;
+
+    // console.log('chatroom messages', chatroomMessages);
 
     chatroomMessages = chatroomMessages.map((message) => JSON.parse(message));
-
-    console.log('parsed chatroomMessages', chatroomMessages);
-
-    return serverResponse(req, res, 200, { messages: chatroomMessages });
+    if (chatroomLastMessageId !== userLastMessageId) {
+      console.log('the chatroom messages', chatroomMessages);
+      req.previouslyCachedMessages = chatroomMessages;
+      req.userLastMessageId = userLastMessageId;
+      next();
+    } else {
+      console.log('parsed chatroomMessages', chatroomMessages);
+      return serverResponse(req, res, 200, { messages: chatroomMessages });
+    }
   } catch (error) {
     console.log(error);
     return serverError(req, res, error);

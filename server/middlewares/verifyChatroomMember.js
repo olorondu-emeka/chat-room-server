@@ -20,9 +20,6 @@ const verifyChatroomMembers = async (req, res, next) => {
 
     id = id || chatroomId;
 
-    // console.log('user', req.user);
-    // console.log('params', req.params);
-
     const possibleChatroom = await Chatroom.findOne({
       where: {
         id

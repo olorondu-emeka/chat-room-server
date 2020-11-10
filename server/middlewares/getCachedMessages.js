@@ -58,24 +58,18 @@ const getCachedMessages = async (req, res, next) => {
       return;
     }
 
-    console.log('hello');
-
     let userLastMessageId;
     if (checkpoint !== null) {
       userLastMessageId = checkpoint.dataValues.lastMessageId;
     }
     const { lastMessageId: chatroomLastMessageId } = chatroom.dataValues;
 
-    // console.log('chatroom messages', chatroomMessages);
-
     chatroomMessages = chatroomMessages.map((message) => JSON.parse(message));
     if (chatroomLastMessageId !== userLastMessageId) {
-      console.log('the chatroom messages', chatroomMessages);
       req.previouslyCachedMessages = chatroomMessages;
       req.userLastMessageId = userLastMessageId;
       next();
     } else {
-      console.log('parsed chatroomMessages', chatroomMessages);
       return serverResponse(req, res, 200, { messages: chatroomMessages });
     }
   } catch (error) {

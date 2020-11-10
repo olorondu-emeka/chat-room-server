@@ -265,8 +265,6 @@ export default class Chatrooms {
       const cachedMessages = [];
       const io = socketIO.getIO();
 
-      console.log('previously cached messages', req.previouslyCachedMessages);
-
       // send back previously cached messages as an event
       if (req.previouslyCachedMessages && req.previouslyCachedMessages.length > 0) {
         io.sockets.emit('cached messages', {
@@ -281,7 +279,7 @@ export default class Chatrooms {
         chatroomId: id
       };
 
-      if (req.userLastMessageId) {
+      if (req.previouslyCachedMessages && req.previouslyCachedMessages.length > 0) {
         condition = {
           ...condition,
           id: {
@@ -341,14 +339,12 @@ export default class Chatrooms {
         }
       }
 
-      console.log('cached messages', cachedMessages);
-
       // save in redis
       if (process.env.NODE_ENV !== 'test' && cachedMessages.length > 0) {
         await promise.map(
           cachedMessages,
-          async (message) => {
-            await rpushAsync(
+          (message) => {
+            rpushAsync(
               `chatroomMessage__chatroomId:${id}__userId:${userId}`,
               message
             );
@@ -424,17 +420,41 @@ export default class Chatrooms {
   static async updateCheckpoint(req, res) {
     const { id: userId } = req.user;
     const { id } = req.params;
-    const { messageId } = req.body;
+    const { message } = req.body;
+    const redisClient = redisConfig.getClient();
+    const rpushAsync = promisify(redisClient.rpush).bind(redisClient);
 
-    await ChatroomMessageCheckpoint.update(
-      { lastMessageId: messageId },
-      {
-        where: {
-          userId,
-          chatroomId: id
-        }
+    const possibleCheckpoint = await ChatroomMessageCheckpoint.findOne({
+      where: {
+        userId,
+        chatroomId: id
       }
-    );
+    });
+
+    if (!possibleCheckpoint) {
+      await ChatroomMessageCheckpoint.create({
+        userId,
+        chatroomId: id,
+        lastMessageId: message.id
+      });
+    } else {
+      await ChatroomMessageCheckpoint.update(
+        { lastMessageId: message.id },
+        {
+          where: {
+            userId,
+            chatroomId: id
+          }
+        }
+      );
+    }
+
+    if (process.env.NODE_ENV !== 'test') {
+      await rpushAsync(
+        `chatroomMessage__chatroomId:${id}__userId:${userId}`,
+        JSON.stringify(message)
+      );
+    }
 
     return serverResponse(req, res, 200, { message: 'checkpoint updated' });
   }

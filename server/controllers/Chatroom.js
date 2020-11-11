@@ -260,13 +260,21 @@ export default class Chatrooms {
     try {
       const { id: userId } = req.user;
       const { id } = req.params;
-      const redisClient = redisConfig.getClient();
-      const rpushAsync = promisify(redisClient.rpush).bind(redisClient);
+      let redisClient, rpushAsync;
+
+      if (process.env.NODE_ENV !== 'test') {
+        redisClient = redisConfig.getClient();
+        rpushAsync = promisify(redisClient.rpush).bind(redisClient);
+      }
+
       const cachedMessages = [];
       const io = socketIO.getIO();
 
       // send back previously cached messages as an event
-      if (req.previouslyCachedMessages && req.previouslyCachedMessages.length > 0) {
+      if (
+        req.previouslyCachedMessages
+        && req.previouslyCachedMessages.length > 0
+      ) {
         io.sockets.emit('cached messages', {
           userId,
           chatroomId: id,
@@ -279,7 +287,10 @@ export default class Chatrooms {
         chatroomId: id
       };
 
-      if (req.previouslyCachedMessages && req.previouslyCachedMessages.length > 0) {
+      if (
+        req.previouslyCachedMessages
+        && req.previouslyCachedMessages.length > 0
+      ) {
         condition = {
           ...condition,
           id: {
@@ -421,8 +432,12 @@ export default class Chatrooms {
     const { id: userId } = req.user;
     const { id } = req.params;
     const { message } = req.body;
-    const redisClient = redisConfig.getClient();
-    const rpushAsync = promisify(redisClient.rpush).bind(redisClient);
+    let redisClient, rpushAsync;
+
+    if (process.env.NODE_ENV !== 'test') {
+      redisClient = redisConfig.getClient();
+      rpushAsync = promisify(redisClient.rpush).bind(redisClient);
+    }
 
     const possibleCheckpoint = await ChatroomMessageCheckpoint.findOne({
       where: {
